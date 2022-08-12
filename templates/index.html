@@ -1,0 +1,133 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Audio Reader
+{% endblock %}
+
+{% block main %}
+
+    <div class="selections row">
+        <div class="select-box col-sm-3 my-2">
+            <label for="category"> Choose categories: </label> <br><br>
+            <select name="category" class="form-control" id="category" multiple>
+                <option value="0">Current Events</option>
+                <option value="1">Fine Arts</option>
+                <option value="2">Geography</option>
+                <option value="3">History</option>
+                <option value="4">Literature</option>
+                <option value="5">Mythology</option>
+                <option value="6">Philosophy</option>
+                <option value="7">Religion</option>
+                <option value="8">Science</option>
+                <option value="9">Social Science</option>
+                <option value="10">Trash</option>
+            </select>
+        </div>
+        <div class="keywords col-sm-9">
+            <label for="q-words">Question contains: (separate with commas)</label> <br><br>
+            <input type="text" class="form-control" id="q-words" /> <br>
+            <label for="a-words">Answer contains: (separate with commas)</label> <br><br>
+            <input type="text" class="form-control" id="a-words" />
+        </div>
+    </div>
+    <br>
+    <button class="btn btn-primary mb-3" id="next-button"> Next Clue </button>
+    <br>
+    <div id="question-box"></div>
+    <form id="answer-box" class="row" action="javascript:void(0);" hidden>
+        <div class="col-sm-2">
+            <input class="form-control mb-3 w-sm-auto" name="answer" placeholder="Enter Answer" id = "answer" type="text">
+        </div>
+        <button type="submit" id = "submit-button" class="btn btn-primary col-sm-2 mb-3 mx-3 w-auto" type = "submit">Submit</button>
+    </form>
+
+    <div id="ans-status" hidden></div>
+
+    <script>
+
+        let nextButton = document.querySelector("#next-button");
+        let questionText = "Question";
+        let answerText = "Answer";
+
+        nextButton.addEventListener("click", async function()
+        {
+            
+            
+            console.log("clicked next")
+            document.querySelector("#question-box").hidden = true;
+            document.querySelector("#answer-box").hidden = true;
+            document.querySelector("#ans-status").hidden = true;
+            document.querySelector("#next-button").disabled = true;
+            document.querySelector("#submit-button").disabled = false;
+
+            let categories = [];
+            for (var option of document.querySelector("#category").options)
+            {
+                if (option.selected) {
+                    categories.push(option.value);
+                }
+            }
+            let qWords = document.querySelector("#q-words").value;
+            let aWords = document.querySelector("#a-words").value;
+
+            var fData = new FormData();
+            fData.append("categories", categories);
+            fData.append("qWords", document.querySelector("#q-words").value);
+            fData.append("aWords", document.querySelector("#a-words").value);
+
+            const response = fetch("/", {
+                method: "POST",
+                body: fData,
+                })
+                .then(async function(response) {
+                    console.log("received");
+                    console.log(response);
+                    const jResponse = await response.json();
+                    questionText = jResponse.question; //this is a string
+                    answerText = jResponse.answer;
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            
+            console.log("finished fetch block");
+            console.log(response);
+            console.log(await response);
+            document.querySelector("#question-box").innerHTML = "<p>" + questionText + "</p>"; 
+            document.querySelector("#question-box").hidden = false;
+            document.querySelector("#answer").value = "";
+            document.querySelector("#answer-box").hidden = false;
+            document.querySelector("#next-button").disabled = true;
+
+            if (questionText === "None found") {
+                document.querySelector("#answer-box").hidden = true;
+                document.querySelector("#next-button").disabled = false;
+            }
+        })
+
+        let submitButton = document.querySelector("#submit-button");
+        submitButton.addEventListener("click", function()
+        {
+            let myAnswer = document.querySelector("#answer").value;
+            var ansArray = answerText.split(",");
+            myAnswer = myAnswer.trim();
+            myAnswer = myAnswer.toLowerCase();
+            let ansStr = "Incorrect! ";
+            ansArray.forEach(function(ans){
+                let a = ans.trim();
+                a = a.toLowerCase();
+                if (a === myAnswer) {
+                    ansStr = "Correct! ";
+                }
+            });
+            ansStr += "Acceptable answers were: " + answerText;
+            document.querySelector("#ans-status").innerHTML = "<p>" + ansStr + "</p>";
+            document.querySelector("#ans-status").hidden = false;
+
+            document.querySelector("#submit-button").disabled = true;
+            document.querySelector("#next-button").disabled = false;
+        })
+    </script>
+
+
+{% endblock %}

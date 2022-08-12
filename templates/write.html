@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Audio Reader
+{% endblock %}
+
+{% block main %}
+
+    <div id="before-box">
+        <div class="select-box row">
+            <label for="category" class="col-sm-2 col-form-label mx-3">Choose category:</label>
+            <select class="form-control w-auto col-sm-10 mx-3" name="category" id="category">
+                <option value="0">Current Events</option>
+                <option value="1">Fine Arts</option>
+                <option value="2">Geography</option>
+                <option value="3">History</option>
+                <option value="4">Literature</option>
+                <option value="5">Mythology</option>
+                <option value="6">Philosophy</option>
+                <option value="7">Religion</option>
+                <option value="8">Science</option>
+                <option value="9">Social Science</option>
+                <option value="10">Trash</option>
+            </select>
+        </div>
+    
+        <br>
+        <form class = "form-group" id="write-box" action="javascript:void(0);">
+            <div class="row">
+            <textarea name="question" columns="12" placeholder="Enter Clue" class="form-control w-auto m-3 col" id = "question" type="text"></textarea>
+            <textarea name="answers" columns="12" placeholder="Enter Acceptable Answers (separated by commas)" class="form-control w-auto m-3 col" id = "answers" type="text"></textarea>
+            </div>
+            <br>
+            <button type="submit" id = "submit-button" class="btn btn-primary mb-3" type = "submit">Submit</button>
+        </form>
+    </div>
+
+    <div id="after-box" hidden>
+        Question submitted! <br> <br>
+        <button id="next-button" class="btn btn-primary mb-3">Write Another</button>
+    </div>
+
+    <script>
+
+
+
+        document.querySelector("#submit-button").addEventListener("click", async function()
+        {
+            let category = document.querySelector("#category").value;
+
+            var fData = new FormData();
+            fData.append("category", category);
+            fData.append("question", document.querySelector("#question").value);
+            fData.append("answers", document.querySelector("#answers").value);
+
+            const response = fetch("/write", {
+                method: "POST",
+                body: fData,
+                })
+                .then(async function(response) {
+                    console.log("received");
+                    console.log(response);
+                    const jResponse = await response.json();
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            
+            console.log("finished fetch block");
+            console.log(response);
+            console.log(await response);
+            document.querySelector("#before-box").hidden = true;
+            document.querySelector("#question").value = "";
+            document.querySelector("#answers").value = "";
+            document.querySelector("#after-box").hidden = false;
+        })
+
+        let submitButton = document.querySelector("#next-button");
+        submitButton.addEventListener("click", function()
+        {
+            document.querySelector("#after-box").hidden = true;
+            document.querySelector("#before-box").hidden = false;
+        })
+    </script>
+
+
+{% endblock %}
